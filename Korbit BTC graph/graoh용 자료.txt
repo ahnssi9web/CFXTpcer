@@ -1,0 +1,28 @@
+BTCpriceNow	BTCprice	BTCdiff
+2	3	4
+
+ttlamt	ahnttlper
+31	32
+
+buycnt	sellcnt
+8	9
+
+
+buyamt	sellamt	ttlamt	ahnttlper
+11	12	13	21
+
+
+marketcnt	marketamt	marketper
+15	16	17
+
+
+ahncntper	ahnamtper	ahnttlper	ahnperper
+19	20	21	22
+
+
+BTCpriceNow	newBTCavg	oldBTCavg
+27	28	29
+
+
+    graphSheet.cell(1, 31).value = 'ttlamt'
+    graphSheet.cell(1, 32).value = 'ahnttlper'
