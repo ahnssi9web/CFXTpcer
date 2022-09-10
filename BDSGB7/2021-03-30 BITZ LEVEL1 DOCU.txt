@@ -1,0 +1,47 @@
+service@bitz.email
+
+
+Request to modify the first-level authentication information;
+
+content of email:
+
+1. The email or mobile phone number bound to the account;
+  ahnssi9@hanmail.net
+  8201042172034
+
+2. Current authentication information of the account (before modification): name, certificate number;
+（Certificate information visible on the first level certification page）
+
+Individual Account
+Country/Area
+South Korea
+ID type
+ID card
+Real name
+안상구
+ID number
+119******631
+
+3. Account's correct authentication information (after modification): name, certificate number;
+Real name
+AHN 
+SANGKOO
+ID number
+M69018533
+
+4. The front and back of two forms of valid identification documents must be clear and colored, such as passports (head pages), 
+national ID cards, driver's licenses or other forms of identification issued by the government.
+
+
+5 Upload the recorded video. You need to hold the ID in the video, and your face needs to be clearly exposed. 
+Say the following information: 
+I (name), AHN SANGKOO
+ID number (ID number), M69018533
+apply to modify the first-level authentication information, x year x month x day.
+2021 MARCH 30
+
+6. The following materials must provide two items:
+Certificate of no criminal record issued by the police station of the place of residence (sealed), water, electricity, coal and gas bills 
+within 3 months, government tax bills or bills of the licensed company (bank, credit card, insurance) within 6 months
+After the information is verified, we will process it for you within three working days.
+
