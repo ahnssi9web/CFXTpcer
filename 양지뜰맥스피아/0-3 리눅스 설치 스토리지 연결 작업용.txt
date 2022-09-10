@@ -1,0 +1,34 @@
+
+root@chainflix/home# sudo su -
+
+비밀번호 입력
+
+sudo apt-get install vim
+
+mkdir /home/chainflix
+
+cd /home/chainflix
+
+? wget sudo http://github.com/jampick-kr/chainflix-storage-update/raw/master/linux/release/latest/chainflix.linux.tar.gz
+http://github.com/jampick-kr/chainflix-storage-update/raw/master/linux/release/latest/chainflix.linux.tar.gz
+
+tar xvfzp chainflix.linux.tar.gz
+
+rm -rf chainflix.linux.tar.gz
+
+vi ./conf/config.json
+
+=============================
+
+   chainflix 홈페이지 스토리지 관리에 들어가서 ID API 복사하여 붙여 넣기한다.
+
+=============================
+
+저장하기
+
+
+
+
+
+
+
