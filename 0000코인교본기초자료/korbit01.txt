@@ -1,0 +1,225 @@
+import requests
+import datetime
+from time import sleep
+import csv
+import os.path
+import json
+
+
+v = os.path.isfile("C:/Users/ahnssi9/Desktop/korbit.csv")
+if v == False:
+    f = open("C:/Users/ahnssi9/Desktop/korbit.csv", mode="w", encoding="cp949", newline='')
+    writer = csv.writer(f)
+    writer.writerow(['nowDatetime', 'type', 'price', 'amount','tid'])
+    print(" make korbit.csv first line --> nowDatetime type  price  amount tid ----")
+    f.close()
+
+v = os.path.isfile("C:/Users/ahnssi9/Desktop/BTC.csv")
+if v == False:
+    f = open("C:/Users/ahnssi9/Desktop/BTC.csv", mode="w", encoding="cp949", newline='')
+    writer = csv.writer(f)
+    writer.writerow(['nowDatetime','BTCprice','buycnt', 'buyamt',  'sellcnt', 'sellamt', 'ttlamt','nowDatetime','BTCprice','sellcnt/buycnt','sellamt/buyamt','sellavg/buyavg','buyselldiff'])
+    print(" make BTC.csv first line --> nowDatetime marketprice  buycnt buyamt  sellcnt sellamt  ttlamt nowDatetime BTCprice sellcnt/buycnt  sellamt/buyamt  sellavg/buyavg  buyselldiff ---")
+    f.close()
+
+# ---------------------------------------------------
+# ---------------------------------------------------
+# ---------------------------------------------------
+while 1:
+    now = datetime.datetime.now()
+    nowDatetime = now.strftime('%Y-%m-%d %H:%M:%S')
+    #print(nowDatetime)  # 2015-04-19 12:11:32
+
+    #-------------------------------------------------------------------------------
+    f = open("C:/Users/ahnssi9/Desktop/korbit.csv", "a", encoding="cp949", newline='')
+    writer = csv.writer(f)
+    req = requests.get('https://api.korbit.co.kr/v1/transactions')
+    dict = json.loads(req.text)
+    #print(req.text)
+    #-------------------------------------------------------------------------------
+    # korbit data 구조 ---> 여러개를 리스트로 만들어서 저장함
+    #   [{"timestamp":1625969554661,"tid":"11777395","price":"39763000","amount":"0.0001337","type":"buy"},
+    #    {"timestamp":1625969544303,"tid":"11777394","price":"39769000","amount":"0.00099771","type":"buy"},
+    #    {"timestamp":1625969531685,"tid":"11777393","price":"39738000","amount":"0.001","type":"sell"},
+    #-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
+    # 한번 읽어오면 약150-200개 사이임
+    for i in range(1, len(dict)):
+    #for i in range(len(dict), len(dict)):
+        #print(i,len(dict))
+        type = dict[i].get('type')
+        price = dict[i].get('price')
+        amount = dict[i].get('amount')
+        tid = dict[i].get('tid')
+        writer.writerow([nowDatetime, type, price, amount, tid])
+    f.close()
+    sleep(1)
+    #-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
+    # korbit.csv를 열고 데이타를 딕셔너리로 읽어들인다. DictReader
+    #-------------------------------------------------------------------------------
+    #print(nowDatetime,"read  korbit data ------------------> ")
+    f = open('C:/Users/ahnssi9/Desktop/korbit.csv', 'r')
+    rdr = csv.DictReader(f)
+    # ----------------------------------------------------------
+    buycnt = 0
+    buyprice = 0
+    buyamt = 0
+
+    sellcnt = 0
+    sellprice = 0
+    sellamt = 0
+    ttlamt = 0
+
+    marketcnt = 0
+    marketamt = 0
+    marketprice = 0
+
+    buyavg = 0
+    sellavg = 0
+    buyselldiff = 0
+    ttlline = 0
+    ahnkorbit = []
+    i = -1
+    #----------------------------------------------------------
+    for line in rdr:
+        # print(line)
+        i = i + 1
+        ahnkorbit.append([])
+        ahnkorbit[i].append(line['type'])
+        ahnkorbit[i].append(line['price'])
+        ahnkorbit[i].append(line['amount'])
+        #print(i, " ", ahnkorbit)
+    f.close()
+    #=====================================================
+    ttlline = i + 1
+    ttllinekorbit = ttlline
+    #print()
+    #print(" korbit ttlline = ", ttlline," ", ahnkorbit[ttlline])
+    #==========================================================
+    #==========================================================
+    i = 0
+    # -------------------------------------------------
+    # 10분에 150개씩 읽어온다고 생각되므로 1시간에 1000개 2시간에 2000개 읽어옴
+    # 최근 24시간 동안의 약20000개의 사자와 팔자의 비율이 어떻게 되는지 비교해보자
+    #for i in range(1, ttlline):
+    for i in range(ttlline-20000, ttlline):
+        #print(i, " ----- ", ahnkorbit[i])
+        if (ahnkorbit[i][0] == 'buy'):
+            buycnt = buycnt + 1
+            buyprice = buyprice + float(ahnkorbit[i][1])
+            buyamt = buyamt + float(ahnkorbit[i][2])
+            #print("--- buycnt : ", buycnt, " ---- amount = ", line['amount'], " ---- buyamt : ", buyamt)
+        else:
+            sellcnt = sellcnt + 1
+            sellprice = sellprice + float(ahnkorbit[i][1])
+            sellamt = sellamt + float(ahnkorbit[i][2])
+            #print("--- sellcnt : ", sellcnt, " ---- amount = ", line['amount'], " ---- sellamt : ", sellamt)
+    ttlamt = buyamt + sellamt
+    #print("-----------korbit  end of line ---")
+    #print(nowDatetime,"--- 11 korbit  BTC 가격 : ",float(ahnkorbit[i][1]), " 최근 BTC 1000개 buy : ", buycnt, " 수량 : ", buyamt," <<<>>>  sell : ", sellcnt, " 수량 : ", sellamt)
+
+    #=============== 최근 자료 buy sell 주문건수 비교 buy가 많으면 상승장 판단
+    if (buycnt > 0 and sellcnt > 0):
+        buyavg = buyprice / buycnt
+        sellavg = sellprice / sellcnt
+        buyselldiff = buyavg - sellavg
+        marketcnt =  buycnt/sellcnt
+        #print(" ---marketcnt = ", marketcnt,"  sellcnt=", sellcnt, "  buycnt=", buycnt,  "  sellavg=", sellavg,"  buyavg=", buyavg," buyselldiff=",buyselldiff," sellaqg-buyavg=",sellavg - buyavg)
+
+    if (marketcnt > 1.2):
+        result11 = "상승"
+        ahnres11 = 30
+        #print("--- marketcnt 장-----")
+    elif (marketcnt < 1.2 and marketcnt > 0.8):
+        result11 = "보합"
+        ahnres11 = 20
+    #    #print("--- marketcnt 보합-----")
+    else:
+        result11 = "하락"
+        ahnres11 = 10
+    #    #print("--- marketcnt 하락장-----")
+
+    #=============== 최근 자료의 buy sell 주문수량 비교 buy가 많으면 상승장 판단
+    if (buyamt > 0):
+        marketamt =  buyamt/sellamt
+    #--------------------------------------------------------------------------
+    #print(" ---marketamt = ", marketamt, "  buycnt=", buycnt, " buyamt=", buyamt, "  sellcnt=", sellcnt, "   sellamt=", sellamt)
+    if (marketamt > 1.2):
+        result12 = "상승"
+        ahnres12 = 60
+        #print("--- marketamt 상승장-----")
+    elif (marketamt < 1.2 and marketamt > 0.8):
+        result12 = "보합"
+        ahnres12 = 40
+        #print("--- marketamt 보합-----")
+    else:
+        result12 = "하락"
+        ahnres12 = 20
+        #print("--- marketamt 하락장-----")
+    # -----------------------------------------------
+    if buyavg > 0:
+        marketprice = buyavg/sellavg
+        #print(" ---marketprice = ", marketprice*100, "  sellavg=", sellavg, "   buyavg=", buyavg)
+    # ----------------------------------------------------
+    if (marketprice > 1.005):
+        result13 = "상승"
+        ahnres13 = 30
+        #print("--- markeprice 상승장-----")
+    elif (marketprice < 1.005 and marketprice > 0.995):
+        result13 = "보합"
+        ahnres13 = 20
+
+        #print("--- markeprice 보합-----")
+    else:
+        result13 = "하락"
+        ahnres13 = 10
+
+        #print("--- markeprice 하락장-----")
+    # ----------------------------------------------------
+
+    # ----------------------------------------------------
+    if (buyselldiff > 500000):
+        result14 = "상승"
+        ahnres14 = 30
+
+        #print("---14: buyselldiff 상승장-----",result14)
+    elif (buyselldiff < 500000 and buyselldiff > -500000):
+        result14 = "보합"
+        ahnres14 = 20
+        #print("--- 14: buyselldiff 보합-----",result14)
+    else:
+        result14= "하락"
+        ahnres14 = 10
+        #print("--- 14: buyselldiff 하락장-----",result14)
+    # ----------------------------------------------------
+    ahndata = ahnres11+ahnres12+ahnres13+ahnres14
+    # ----------------------------------------------------
+    # 그래픽용 --- 10,000개를 합산하니 크기가 커서  100으로 나누어 100단위로 만듬
+    #------------------------------------------------------------------
+    BTCprice=(float(ahnkorbit[i][1])) / 1000000
+
+    sellcnt100 = round(sellcnt/100, 1)
+    sellamt100 = round(sellamt, 1)
+
+    buycnt100=round(buycnt/100,1)
+    buyamt100=round(buyamt,1)
+
+    ttlamt100=round(ttlamt,1)
+
+    marketcnt100=round(marketcnt * 100, 0)
+    marketamt100=round(marketamt * 100, 0)
+    marketprice100=round(marketprice * 100, 0)
+
+    buyselldiff100=round(buyselldiff/10000, 0)
+
+   # ---------------------------------------------------
+     # ----------------------------------------------------
+    print(ttlline,nowDatetime,"<",ahndata,">",result11, result12, result13, result14,BTCprice," B:", buycnt100, "/", buyamt100," S:", sellcnt100, "/", sellamt100," T:", ttlamt100,"<",ahndata,"> cnt:",marketcnt100,"amt:",marketamt100,"avg:",marketprice100,"diff:",buyselldiff100)
+    # ---------------------------------------------------
+    # ----------------------------------------------------
+    with open("C:/Users/ahnssi9/Desktop/BTC.csv", mode="a", encoding="cp949", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([nowDatetime, BTCprice,  buycnt100, buyamt100, sellcnt100, sellamt100, ttlamt100,nowDatetime, BTCprice,ahndata,marketcnt100,marketamt100,marketprice100,buyselldiff100])
+    #----------------------------------------------------------------------------------
+    sleep(600)
